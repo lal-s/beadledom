@@ -37,36 +37,11 @@ fi
 
 release_tag="$1"
 
-if [[ "$release_tag" == "dev" || "$release_tag"  == "master" ]]; then
-  release_tag=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+release_tag=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
 
-  printf "${CYAN}Checking out master to build SNAPSHOT version ${WHITE}"${release_tag}" ${CYAN}of docs.$RESET \n"
+printf "${CYAN}Checking out master to build SNAPSHOT version ${WHITE}"${release_tag}" ${CYAN}of docs.$RESET \n"
 
-  git checkout -B "dev"
-else
-  printf "${CYAN}Fetching release tags.$RESET \n"
-  git fetch --tags
-
-  tags="$(git tag -l)"
-
-  # Set IFS to split on newlines
-  oldIFS="$IFS"
-  IFS='
-  '
-  lines=( ${tags} )
-
-  # Reset IFS
-  IFS="$oldIFS"
-
-  if [[ ! "${lines[@]}" =~ "${release_tag}" ]]; then
-    printf "${RED}Release tag ${YELLOW}${release_tag} ${CYAN}doesn't exist.$RESET \n"
-    exit 1
-  fi
-
-  printf "${CYAN}Checkout out ${WHITE}${release_tag}.$RESET \n"
-
-  git checkout -b "v${release_tag}" "${release_tag}"
-fi
+git checkout -B "dev"
 
 printf "${CYAN}Generating site.$RESET \n"
 mvn clean site
@@ -74,35 +49,35 @@ mvn clean site
 printf "${CYAN}Staging site.$RESET \n"
 mvn site:stage
 
-printf "${CYAN}Checking out gh-pages branch.$RESET \n"
-git remote set-branches --add origin gh-pages && git fetch -q
-git checkout -b gh-pages origin/gh-pages
+#printf "${CYAN}Checking out gh-pages branch.$RESET \n"
+#git remote set-branches --add origin gh-pages && git fetch -q
+#git checkout -b gh-pages origin/gh-pages
 
-if [ ! -d "$release_tag" ]; then
-  printf "${CYAN}Creating site directory ${WHITE}${release_tag}.$RESET \n"
-  mkdir ${release_tag}
-else
-  printf "${CYAN}Clearing out existing site directory ${WHITE}${release_tag}.$RESET \n"
-  rm -rf ${release_tag}/*
-fi
+#if [ ! -d "$release_tag" ]; then
+#  printf "${CYAN}Creating site directory ${WHITE}${release_tag}.$RESET \n"
+#  mkdir ${release_tag}
+#else
+#  printf "${CYAN}Clearing out existing site directory ${WHITE}${release_tag}.$RESET \n"
+#  rm -rf ${release_tag}/*
+#fi
 
-printf "${CYAN}Moving site files to ${WHITE}${release_tag}.$RESET \n"
-cp -r target/staging/* "$release_tag"/
+#printf "${CYAN}Moving site files to ${WHITE}${release_tag}.$RESET \n"
+#cp -r target/staging/* "$release_tag"/
 
-printf "${CYAN}Creating redirecting index.html.$RESET \n"
-mv target/build_index.sh "."
-bash ./build_index.sh "$release_tag"
+#printf "${CYAN}Creating redirecting index.html.$RESET \n"
+#mv target/build_index.sh "."
+#bash ./build_index.sh "$release_tag"
 
-printf "${CYAN}Generating git commit.$RESET \n"
-git add .
-git commit -m "Rebuilt docs for Beadledom ${release_tag}"
+#printf "${CYAN}Generating git commit.$RESET \n"
+#git add .
+#git commit -m "Rebuilt docs for Beadledom ${release_tag}"
 
-printf "${CYAN}\nAll Done!$RESET"
-printf "${CYAN}\nAutomatically pushing docs site for ${release_tag}.\n$RESET"
+#printf "${CYAN}\nAll Done!$RESET"
+#printf "${CYAN}\nAutomatically pushing docs site for ${release_tag}.\n$RESET"
 
-REPO=`git config remote.origin.url`
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
+#REPO=`git config remote.origin.url`
+#SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
 
-git push $SSH_REPO gh-pages
+#git push $SSH_REPO gh-pages
 
 exit $?
