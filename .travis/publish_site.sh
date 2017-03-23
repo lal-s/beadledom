@@ -26,19 +26,6 @@ function display_usage() {
   printf "${GREEN}   Example: ${YELLOW}./publish_site.sh dev ${GREEN}- Prepare docs for current SNAPSHOT.\n$RESET"
 }
 
-function add-ssh-keys() {
-  chmod 600 $GPG_DIR/deploy_site_key
-  eval `ssh-agent -s`
-  ssh-add $GPG_DIR/deploy_site_key
-}
-
-function configure-git() {
-  add-ssh-keys
-
-  git config --global user.name "travis-ci"
-  git config --global user.email "travis@travis-ci.org"
-}
-
 if [[ "$#" -eq 0 ]]; then
   printf "${RED}No release tag specified\n\n"
   display_usage
@@ -47,8 +34,6 @@ elif [[ "$1" == "--help" ]]; then
   display_usage
   exit 0
 fi
-
-configure-git
 
 release_tag="$1"
 
